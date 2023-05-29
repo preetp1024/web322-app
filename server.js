@@ -1,3 +1,17 @@
+/*********************************************************************************
+
+WEB322 – Assignment 02
+I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source (including 3rd party web sites) or distributed to other students.
+
+Name: Preet Patel
+Student ID: 175058213
+Date: 29th May 2023
+Cyclic Web App URL: https://tiny-sundress-lamb.cyclic.app/about
+GitHub Repository URL: https://github.com/preetp1024/web322-app.git
+
+********************************************************************************/ 
+
+
 const store_service = require("./store-service.js");
 
 var port = process.env.PORT || 8080;
@@ -23,7 +37,7 @@ app.get('/', (req, res) => {
 
 // Return the about.html file from the 'views' folder
 app.get('/about', (req, res) => {
-  res.sendFile('C:/Users/preet/OneDrive/Desktop/My web322 work/WEB322-App/views/about.html');
+  res.sendFile(__dirname + '/views/about.html');
 });
 
 app.get('/shop', (req, res) => {
