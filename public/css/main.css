@@ -1,0 +1,63 @@
+/* Global Styles */
+body {
+    font-family: "Arial", sans-serif;
+    background: linear-gradient(to right, #E6E9F0, #EFF2F7);
+    color: #23374d;
+}
+  
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to bottom right, #CFD8E3, #E2E6ED);
+}
+  
+h2 {
+    margin-top: 0;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f3460;
+}
+  
+p {
+    margin-bottom: 20px;
+    font-size: 18px;
+    line-height: 1.6;
+    color: #23374d;
+}
+  
+/* Navbar Styles */
+.navbar {
+    padding: 15px 0;
+    background: linear-gradient(to right, #1f3460, #2e4272);
+}
+  
+.navbar-brand {
+    font-size: 28px;
+    font-weight: bold;
+    color: #eef0f4;
+}
+  
+.navbar-nav .nav-item {
+    margin-right: 15px;
+}
+  
+.nav-link {
+    color: #eef0f4;
+    font-size: 18px;
+    font-weight: 500;
+}
+  
+/* Main Section Styles */
+aside {
+    background: linear-gradient(to bottom, #eef0f4, #CFD8E3);
+    padding: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+  
+.main {
+    background: linear-gradient(to bottom, #CFD8E3, #E2E6ED);
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
