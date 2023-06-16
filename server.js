@@ -69,10 +69,45 @@ app.get("/shop", (req, res) => {
 });
 
 app.get("/items", (req, res) => {
+  const { category, minDate } = req.query;
+
+  if (category) {
+    store_service
+      .getItemsByCategory(category)
+      .then((items) => {
+        res.send(items);
+      })
+      .catch((error) => {
+        res.send({ message: error });
+      });
+  } else if (minDate) {
+    store_service
+      .getItemsByMinDate(minDate)
+      .then((items) => {
+        res.send(items);
+      })
+      .catch((error) => {
+        res.send({ message: error });
+      });
+  } else {
+    store_service
+      .getAllItems()
+      .then((items) => {
+        res.send(items);
+      })
+      .catch((error) => {
+        res.send({ message: error });
+      });
+  }
+});
+
+app.get("/item/:id", (req, res) => {
+  const itemId = req.params.id;
+
   store_service
-    .getAllItems()
-    .then((items) => {
-      res.send(items);
+    .getItemById(itemId)
+    .then((item) => {
+      res.send(item);
     })
     .catch((error) => {
       res.send({ message: error });
