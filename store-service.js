@@ -73,6 +73,7 @@ function addItem(itemData) {
     }
 
     itemData.id = items.length + 1;
+    itemData.postDate = new Date().toISOString().split("T")[0]; // Set the current date in the format YYYY-MM-DD
 
     items.push(itemData);
 
@@ -117,6 +118,17 @@ function getItemById(id) {
   });
 }
 
+function getPublishedItemsByCategory(category) {
+  return new Promise((resolve, reject) => {
+    const filteredItems = items.filter((item) => item.published && item.category === category);
+    if (filteredItems.length === 0) {
+      reject("No published items found for the given category.");
+    } else {
+      resolve(filteredItems);
+    }
+  });
+}
+
 
 module.exports = {
   initialize,
@@ -127,4 +139,5 @@ module.exports = {
   getItemsByCategory,
   getItemsByMinDate,
   getItemById,
+  getPublishedItemsByCategory,
 };
