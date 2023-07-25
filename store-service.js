@@ -11,7 +11,6 @@ var sequelize = new Sequelize('hpbfkvea', 'hpbfkvea', 'Wq2wXYY_PAy3PkF6xgGNjC8zi
   query: { raw: true }
 });
 
-// Define the Item model
 const Item = sequelize.define('item', {
   body: Sequelize.TEXT,
   title: Sequelize.STRING,
@@ -21,15 +20,12 @@ const Item = sequelize.define('item', {
   price: Sequelize.DOUBLE
 });
 
-// Define the Category model
 const Category = sequelize.define('category', {
   category: Sequelize.STRING
 });
 
-// Define the relationship
 Item.belongsTo(Category, { foreignKey: 'category' });
 
-// Function to initialize the database
 function initialize() {
   return new Promise((resolve, reject) => {
     sequelize

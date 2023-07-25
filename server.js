@@ -41,7 +41,6 @@ app.engine('.hbs', hbs.engine);
 
 app.set('view engine', '.hbs');
 
-// Add this middleware to parse form data
 app.use(express.urlencoded({extended: true}));
 
 store_service
@@ -324,7 +323,6 @@ app.get('/shop/:id', async (req, res) => {
   res.render("shop", { data: viewData });
 });
 
-// Middleware for handling 404 errors
 app.use((req, res, next) => {
   res.status(404).render("404");
 });
