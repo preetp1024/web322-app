@@ -1,3 +1,5 @@
+<!-- items.hbs -->
+
 <div class="row">
   <div class="col-md-12">
     <h2>Items</h2>
@@ -8,26 +10,26 @@
         <thead>
           <tr>
             <th>Item ID</th>
-            <th>Title</th>
-            <th>Post Date</th>
-            <th>Price</th>
-            <th>Category</th>
-            <th>Published</th>
+            <th>Item Name</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {{#each items}}
             <tr>
-              <td>{{itemId}}</td>
-              <td>{{title}}</td>
-              <td>{{postDate}}</td>
-              <td>{{price}}</td>
               <td>
-                <a href="/items?category={{category}}">
-                  {{category}}
+                <a href="/item/{{id}}">
+                  {{id}}
                 </a>
               </td>
-              <td>{{published}}</td>
+              <td>
+                <a href="/item/{{id}}">
+                  {{title}}
+                </a>
+              </td>
+              <td>
+                <a href="/items/delete/{{id}}" class="btn btn-danger">remove</a>
+              </td>
             </tr>
           {{/each}}
         </tbody>

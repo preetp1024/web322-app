@@ -9,6 +9,7 @@
           <tr>
             <th>Category ID</th>
             <th>Category Name</th>
+            <th></th> 
           </tr>
         </thead>
         <tbody>
@@ -23,6 +24,9 @@
                 <a href="/items?category={{id}}">
                   {{category}}
                 </a>
+              </td>
+              <td>
+                <a class="btn btn-danger" href="/categories/delete/{{id}}">Remove</a>
               </td>
             </tr>
           {{/each}}

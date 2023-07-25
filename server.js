@@ -1,16 +1,17 @@
 /*********************************************************************************
-*  WEB322 – Assignment 03
-*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part 
-*  of this assignment has been copied manually or electronically from any other source 
-*  (including 3rd party web sites) or distributed to other students.
+*  WEB322 – Assignment 05
+*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part of this
+*  assignment has been copied manually or electronically from any other source (including web sites) or 
+*  distributed to other students.
 * 
-*  Name: Preet Patel Student ID: 175058213 Date: 30th June 2023
+*  Name: Preet Patel Student ID: 175058213 Date: 24th July 2023
 *
-*  Cyclic Web App URL: https://defiant-gold-hedgehog.cyclic.app/
-* 
+*  Cyclic Web App URL: https://defiant-gold-hedgehog.cyclic.app/shop
+*
 *  GitHub Repository URL: https://github.com/preetp1024/web322-app.git
 *
 ********************************************************************************/ 
+
 
 const store_service = require("./store-service.js");
 
@@ -40,6 +41,8 @@ app.engine('.hbs', hbs.engine);
 
 app.set('view engine', '.hbs');
 
+// Add this middleware to parse form data
+app.use(express.urlencoded({extended: true}));
 
 store_service
   .initialize()
@@ -85,9 +88,6 @@ hbs.handlebars.registerHelper('equal', function (lvalue, rvalue, options) {
   }
 });
 
-
-
-// setup a 'route' to listen on the default URL path
 app.get("/", (req, res) => {
   res.redirect("/shop");
 });
@@ -97,51 +97,50 @@ app.get("/about", (req, res) => {
 });
 
 app.get("/items/add", (req, res) => {
-  res.render('addItem');
+  store_service.getCategories()
+    .then((categories) => {
+      res.render('addPost', { categories: categories });
+    })
+    .catch((error) => {
+      console.error("Failed to fetch categories:", error);
+      res.render('addPost', { categories: [] });
+    });
 });
 
+app.get("/categories/add", (req, res) => {
+  res.render('addCategory');
+});
 
 app.get("/shop", async (req, res) => {
-  // Declare an object to store properties for the view
   let viewData = {};
 
   try {
-    // declare empty array to hold "post" objects
     let items = [];
 
-    // if there's a "category" query, filter the returned posts by category
     if (req.query.category) {
-      // Obtain the published "posts" by category
-      items = await itemData.getPublishedItemsByCategory(req.query.category);
+      items = await store_service.getPublishedItemsByCategory(req.query.category);
     } else {
-      // Obtain the published "items"
-      items = await itemData.getPublishedItems();
+      items = await store_service.getPublishedItems();
     }
 
-    // sort the published items by postDate
     items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
 
-    // get the latest post from the front of the list (element 0)
-    let post = items[0];
-
-    // store the "items" and "post" data in the viewData object (to be passed to the view)
     viewData.items = items;
-    viewData.item = item;
+
+    if (viewData.items.length === 0) {
+      viewData.message = "no results";
+    }
   } catch (err) {
     viewData.message = "no results";
   }
 
   try {
-    // Obtain the full list of "categories"
-    let categories = await itemData.getCategories();
-
-    // store the "categories" data in the viewData object (to be passed to the view)
+    let categories = await store_service.getCategories();
     viewData.categories = categories;
   } catch (err) {
     viewData.categoriesMessage = "no results";
   }
 
-  // render the "shop" view with all of the data (viewData)
   res.render("shop", { data: viewData });
 });
 
@@ -178,7 +177,6 @@ app.get("/items", (req, res) => {
   }
 });
 
-
 app.get("/item/:id", (req, res) => {
   const itemId = req.params.id;
 
@@ -196,13 +194,16 @@ app.get("/categories", (req, res) => {
   store_service
     .getCategories()
     .then((categories) => {
-      res.render("categories", { categories: categories });
+      if (categories.length === 0) {
+        res.render("categories", { message: "no results" });
+      } else {
+        res.render("categories", { categories: categories });
+      }
     })
     .catch((error) => {
       res.render("categories", { message: "no results" });
     });
 });
-
 
 app.post('/items/add', upload.single('featureImage'), (req, res) => {
   if (req.file) {
@@ -249,62 +250,84 @@ app.post('/items/add', upload.single('featureImage'), (req, res) => {
   }
 });
 
+app.post('/categories/add', (req, res) => {
+  store_service.addCategory(req.body)
+    .then(() => {
+      res.redirect('/categories');
+    })
+    .catch((error) => {
+      console.error("Failed to add category:", error);
+      res.redirect('/categories');
+    });
+});
 
+app.get('/categories/delete/:id', (req, res) => {
+  const categoryId = req.params.id;
+
+  store_service.deleteCategoryById(categoryId)
+    .then(() => {
+      res.redirect('/categories');
+    })
+    .catch((error) => {
+      res.status(500).send("Unable to Remove Category / Category not found");
+    });
+});
+
+app.get("/items/delete/:id", (req, res) => {
+  const itemId = req.params.id;
+
+  store_service
+    .deletePostById(itemId)
+    .then(() => {
+      res.redirect("/items");
+    })
+    .catch((error) => {
+      res.status(500).send("Unable to Remove Post / Post not found");
+    });
+});
 app.get('/shop/:id', async (req, res) => {
-
-  // Declare an object to store properties for the view
   let viewData = {};
 
-  try{
+  try {
+    let items = [];
 
-      // declare empty array to hold "item" objects
-      let items = [];
+    if (req.query.category) {
+      items = await store_service.getPublishedItemsByCategory(req.query.category);
+    } else {
+      items = await store_service.getPublishedItems();
+    }
 
-      // if there's a "category" query, filter the returned posts by category
-      if(req.query.category){
-          // Obtain the published "posts" by category
-          items = await itemData.getPublishedItemsByCategory(req.query.category);
-      }else{
-          // Obtain the published "posts"
-          items = await itemData.getPublishedItems();
-      }
+    items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
 
-      // sort the published items by postDate
-      items.sort((a,b) => new Date(b.postDate) - new Date(a.postDate));
+    viewData.items = items;
 
-      // store the "items" and "item" data in the viewData object (to be passed to the view)
-      viewData.items = items;
-
-  }catch(err){
+    if (viewData.items.length === 0) {
       viewData.message = "no results";
+    }
+  } catch (err) {
+    viewData.message = "no results";
   }
 
-  try{
-      // Obtain the item by "id"
-      viewData.item = await itemData.getItemById(req.params.id);
-  }catch(err){
-      viewData.message = "no results"; 
+  try {
+    viewData.item = await store_service.getItemById(req.params.id);
+  } catch (err) {
+    viewData.message = "no results"; 
   }
 
-  try{
-      // Obtain the full list of "categories"
-      let categories = await itemData.getCategories();
-
-      // store the "categories" data in the viewData object (to be passed to the view)
-      viewData.categories = categories;
-  }catch(err){
-      viewData.categoriesMessage = "no results"
+  try {
+    let categories = await store_service.getCategories();
+    viewData.categories = categories;
+  } catch (err) {
+    viewData.categoriesMessage = "no results";
   }
 
-  // render the "shop" view with all of the data (viewData)
-  res.render("shop", {data: viewData})
+  res.render("shop", { data: viewData });
 });
 
 // Middleware for handling 404 errors
 app.use((req, res, next) => {
   res.status(404).render("404");
 });
-
 
 app.use((req, res) => {
   res.status(404).send("ERROR 404: Page not Found");
