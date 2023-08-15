@@ -1,5 +1,5 @@
 /*********************************************************************************
-*  WEB322 – Assignment 05
+*  WEB322 – Assignment 06
 *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part of this
 *  assignment has been copied manually or electronically from any other source (including web sites) or 
 *  distributed to other students.
@@ -13,48 +13,79 @@
 ********************************************************************************/ 
 
 
-const store_service = require("./store-service.js");
+const express = require('express');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
+const exphbs = require('express-handlebars');
+const bodyParser = require('body-parser');
+const clientSessions = require('client-sessions');
+const store_service = require('./store-service.js');
+const authData = require('./auth-service.js');
 
-const multer = require("multer");
-const cloudinary = require("cloudinary").v2;
-const streamifier = require("streamifier");
+const app = express();
+const port = process.env.PORT || 8080;
 
+// Configure cloudinary
 cloudinary.config({
-  cloud_name: "dnx50uyrz",
-  api_key: "919163888773763",
-  api_secret: "eaPrzdbhZVFLaMMzerGliAswdCg",
+  cloud_name: 'dnx50uyrz',
+  api_key: '919163888773763',
+  api_secret: 'eaPrzdbhZVFLaMMzerGliAswdCg',
   secure: true,
 });
 
+// Configure multer for file upload
 const upload = multer();
 
-var port = process.env.PORT || 8080;
-var express = require("express");
-var app = express();
-const exphbs = require('express-handlebars');
-
+// Set up Handlebars
 const hbs = exphbs.create({
-  extname: '.hbs' 
+  extname: '.hbs',
 });
 
 app.engine('.hbs', hbs.engine);
-
 app.set('view engine', '.hbs');
 
-app.use(express.urlencoded({extended: true}));
+// Set up body-parser
+app.use(bodyParser.urlencoded({ extended: true }));
 
-store_service
-  .initialize()
+// Initialize data and authentication
+store_service.initialize()
+  .then(authData.initialize)
   .then(() => {
     app.listen(port, () => {
-      console.log("Express http server listening on port " + port);
+      console.log(`App listening on port ${port}`);
     });
   })
-  .catch((error) => {
-    console.error("Failed to initialize store service:", error);
+  .catch((err) => {
+    console.log(`Unable to start server: ${err}`);
   });
 
-app.use(express.static("public"));
+// Serve static files from the "public" directory
+app.use(express.static('public'));
+
+// Configure client-sessions middleware
+app.use(clientSessions({
+  cookieName: 'session',
+  secret: 'your-secret-key', // Replace with your own secret key
+  duration: 24 * 60 * 60 * 1000, // Session duration in milliseconds (1 day)
+  activeDuration: 1000 * 60 * 5, // Session refresh duration in milliseconds (5 minutes)
+}));
+
+// Set session data for templates
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
+
+// Custom middleware to ensure user is logged in
+function ensureLogin(req, res, next) {
+  if (!req.session.user) {
+    res.redirect('/login');
+  } else {
+    next();
+  }
+}
+
 
 app.use(function(req,res,next){
   let route = req.path.substring(1);
@@ -85,6 +116,49 @@ hbs.handlebars.registerHelper('equal', function (lvalue, rvalue, options) {
   } else {
     return options.fn(this);
   }
+});
+
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.get('/register', (req, res) => {
+  res.render('register');
+});
+
+app.post('/register', (req, res) => {
+  authData.registerUser(req.body)
+    .then(() => {
+      res.render('register', { successMessage: 'User created' });
+    })
+    .catch((err) => {
+      res.render('register', { errorMessage: err, userName: req.body.userName });
+    });
+});
+
+app.post('/login', (req, res) => {
+  req.body.userAgent = req.get('User-Agent');
+  authData.checkUser(req.body)
+    .then((user) => {
+      req.session.user = {
+        userName: user.userName,
+        email: user.email,
+        loginHistory: user.loginHistory,
+      };
+      res.redirect('/items');
+    })
+    .catch((err) => {
+      res.render('login', { errorMessage: err, userName: req.body.userName });
+    });
+});
+
+app.get('/logout', (req, res) => {
+  req.session.reset();
+  res.redirect('/');
+});
+
+app.get('/userHistory', ensureLogin, (req, res) => {
+  res.render('userHistory');
 });
 
 app.get("/", (req, res) => {
@@ -327,6 +401,3 @@ app.use((req, res, next) => {
   res.status(404).render("404");
 });
 
-app.use((req, res) => {
-  res.status(404).send("ERROR 404: Page not Found");
-});
