@@ -162,7 +162,7 @@ app.get('/userHistory', ensureLogin, (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.redirect("/shop");
+  res.redirect("/login");
 });
 
 app.get("/about", (req, res) => {
